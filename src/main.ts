@@ -15,17 +15,22 @@ canvas.width = 256;
 canvas.classList.add("canvas");
 app.appendChild(canvas);
 
-const strokes: Array<Array<{ x: number; y: number }>> = [];
+const lines: Array<Array<{ x: number; y: number }>> = [];
+const redoLines: Array<Array<{ x: number; y: number }>> = [];
+
 const eventObserver = new Event("drawing-changed");
+
+const context = canvas.getContext("2d");
+const cursor = { isPressed: false, x: 0, y: 0 };
 
 canvas.addEventListener("drawing-changed", () => {
   context?.clearRect(0, 0, canvas.width, canvas.height);
 
-  for (const stroke of strokes) {
-    if (stroke.length > 1) {
+  for (const line of lines) {
+    if (line.length > 1) {
       context?.beginPath();
-      context?.moveTo(stroke[0].x, stroke[0].y);
-      for (const point of stroke) {
+      context?.moveTo(line[0].x, line[0].y);
+      for (const point of line) {
         context?.lineTo(point.x, point.y);
       }
       context?.stroke();
@@ -33,20 +38,19 @@ canvas.addEventListener("drawing-changed", () => {
   }
 });
 
-const context = canvas.getContext("2d");
-const cursor = { isPressed: false, x: 0, y: 0 };
-
 canvas.addEventListener("mousedown", (tmp) => {
   cursor.isPressed = true;
   cursor.x = tmp.offsetX;
   cursor.y = tmp.offsetY;
 
-  strokes.push([{ x: cursor.x, y: cursor.y }]);
+  lines.push([{ x: cursor.x, y: cursor.y }]);
+
+  redoLines.length = 0;
 });
 
 canvas.addEventListener("mousemove", (tmp) => {
   if (cursor.isPressed) {
-    strokes[strokes.length - 1].push({ x: tmp.offsetX, y: tmp.offsetY });
+    lines[lines.length - 1].push({ x: tmp.offsetX, y: tmp.offsetY });
 
     canvas.dispatchEvent(eventObserver);
 
@@ -64,7 +68,36 @@ app.append(document.createElement("br"));
 const clearButton = document.createElement("button");
 clearButton.innerHTML = "clear";
 app.appendChild(clearButton);
+
 clearButton.addEventListener("click", () => {
   context?.clearRect(0, 0, canvas.width, canvas.height);
-  strokes.length = 0;
+  lines.length = 0;
+});
+
+const undoButton = document.createElement("button");
+undoButton.innerHTML = "undo";
+app.appendChild(undoButton);
+
+undoButton.addEventListener("click", () => {
+  if (lines.length > 0) {
+    const lastLine = lines.pop();
+    if (lastLine) {
+        redoLines.push(lastLine);
+    }
+    canvas.dispatchEvent(eventObserver);
+  }
+});
+
+const redoButton = document.createElement("button");
+redoButton.innerHTML = "redo";
+app.appendChild(redoButton);
+
+redoButton.addEventListener("click", () => {
+    if (redoLines.length > 0) {
+        const redoLine = redoLines.pop();
+        if (redoLine) {
+            lines.push(redoLine);
+        }
+        canvas.dispatchEvent(eventObserver);
+    }
 });
