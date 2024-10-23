@@ -19,7 +19,6 @@ const strokes: Array<Array<{ x: number, y: number }>> = [];
 const eventObserver = new Event("drawing-changed");
 
 canvas.addEventListener("drawing-changed", () => {
-    //console.log(strokes);
     context?.clearRect(0, 0, canvas.width, canvas.height);
 
     for ( const stroke of strokes) {
@@ -68,5 +67,4 @@ app.appendChild(clearButton);
 clearButton.addEventListener("click", () => {
     context?.clearRect(0, 0, canvas.width, canvas.height);
     strokes.length = 0;
-    //console.log(strokes);
 })
