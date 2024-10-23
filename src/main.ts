@@ -13,7 +13,7 @@ const canvas = document.createElement('canvas');
 canvas.height = 256;
 canvas.width = 256;
 canvas.classList.add("canvas");
-app.append(canvas);
+app.appendChild(canvas);
 
 const context = canvas.getContext("2d");
 const cursor = { isPressed: false, x: 0, y:0 };
@@ -29,6 +29,7 @@ canvas.addEventListener("mousemove", (tmp) => {
         context?.moveTo(cursor.x, cursor.y);
         context?.lineTo(tmp.offsetX, tmp.offsetY)
         context?.stroke();
+
         cursor.x = tmp.offsetX;
         cursor.y = tmp.offsetY;
     }
