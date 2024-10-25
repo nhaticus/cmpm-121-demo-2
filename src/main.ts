@@ -5,35 +5,29 @@ const app = document.querySelector<HTMLDivElement>("#app")!;
 const APP_NAME = "The Drawing board";
 document.title = APP_NAME;
 
-const appTitle = document.createElement("h1");
-appTitle.innerText = APP_NAME;
-app.appendChild(appTitle);
+const _appTitle = createAppTitle(APP_NAME);
 
-const canvas = document.createElement("canvas");
-canvas.height = 256;
-canvas.width = 256;
-canvas.classList.add("canvas");
-app.appendChild(canvas);
+const canvas = createCanvas(256, 256, "canvas");
 
 const lines: Array<Array<{ x: number; y: number }>> = [];
 const redoLines: Array<Array<{ x: number; y: number }>> = [];
 
 const eventObserver = new Event("drawing-changed");
 
-const context = canvas.getContext("2d");
+const ctx = canvas.getContext("2d");
 const cursor = { isPressed: false, x: 0, y: 0 };
 
 canvas.addEventListener("drawing-changed", () => {
-  context?.clearRect(0, 0, canvas.width, canvas.height);
+  ctx?.clearRect(0, 0, canvas.width, canvas.height);
 
   for (const line of lines) {
     if (line.length > 1) {
-      context?.beginPath();
-      context?.moveTo(line[0].x, line[0].y);
+      ctx?.beginPath();
+      ctx?.moveTo(line[0].x, line[0].y);
       for (const point of line) {
-        context?.lineTo(point.x, point.y);
+        ctx?.lineTo(point.x, point.y);
       }
-      context?.stroke();
+      ctx?.stroke();
     }
   }
 });
@@ -64,40 +58,62 @@ canvas.addEventListener("mouseup", () => {
 });
 
 app.append(document.createElement("br"));
+const _clearButton = createButton("clear", clearHandler);
+const _undoButton = createButton("undo", undoHandler);
+const _redoButton = createButton("redo", redoHandler);
 
-const clearButton = document.createElement("button");
-clearButton.innerHTML = "clear";
-app.appendChild(clearButton);
-
-clearButton.addEventListener("click", () => {
-  context?.clearRect(0, 0, canvas.width, canvas.height);
+function clearHandler() {
+  ctx?.clearRect(0, 0, canvas.width, canvas.height);
   lines.length = 0;
-});
+}
 
-const undoButton = document.createElement("button");
-undoButton.innerHTML = "undo";
-app.appendChild(undoButton);
-
-undoButton.addEventListener("click", () => {
+function undoHandler() {
   if (lines.length > 0) {
     const lastLine = lines.pop();
     if (lastLine) {
-        redoLines.push(lastLine);
+      redoLines.push(lastLine);
     }
     canvas.dispatchEvent(eventObserver);
   }
-});
+}
 
-const redoButton = document.createElement("button");
-redoButton.innerHTML = "redo";
-app.appendChild(redoButton);
-
-redoButton.addEventListener("click", () => {
-    if (redoLines.length > 0) {
-        const redoLine = redoLines.pop();
-        if (redoLine) {
-            lines.push(redoLine);
-        }
-        canvas.dispatchEvent(eventObserver);
+function redoHandler() {
+  if (redoLines.length > 0) {
+    const redoLine = redoLines.pop();
+    if (redoLine) {
+      lines.push(redoLine);
     }
-});
+    canvas.dispatchEvent(eventObserver);
+  }
+}
+
+function createAppTitle(title: string): HTMLElement {
+  const tmpTitle = document.createElement("h1");
+  tmpTitle.innerHTML = title;
+  app.appendChild(tmpTitle);
+  return tmpTitle;
+}
+
+function createCanvas(
+  width: number,
+  height: number,
+  className: string
+): HTMLCanvasElement {
+  const tmpCanvas = document.createElement("canvas");
+  tmpCanvas.width = width;
+  tmpCanvas.height = height;
+  tmpCanvas.classList.add(className);
+  app.appendChild(tmpCanvas);
+  return tmpCanvas;
+}
+
+function createButton(
+  buttonText: string,
+  eventHandler: () => void
+): HTMLButtonElement {
+  const tmpButton = document.createElement("button");
+  tmpButton.innerHTML = buttonText;
+  tmpButton.addEventListener("click", eventHandler);
+  app.appendChild(tmpButton);
+  return tmpButton;
+}
