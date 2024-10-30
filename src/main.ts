@@ -115,6 +115,11 @@ function createCursorcommand(x: number, y: number): CursorCommand {
       },
     };
   }
+  return {
+    x,
+    y,
+    draw: () => {},
+  };
 }
 
 const commands: Command[] = [];
