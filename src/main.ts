@@ -7,13 +7,6 @@ function createAppTitle(title: string): HTMLElement {
   return tmpTitle;
 }
 
-const app = document.querySelector<HTMLDivElement>("#app")!;
-
-const APP_NAME = "The Drawing board";
-document.title = APP_NAME;
-
-const _appTitle = createAppTitle(APP_NAME);
-
 function createCanvas(
   width: number,
   height: number,
@@ -27,11 +20,19 @@ function createCanvas(
   return tmpCanvas;
 }
 
+const app = document.querySelector<HTMLDivElement>("#app")!;
+
+const APP_NAME = "The Drawing Board";
+document.title = APP_NAME;
+
+const _appTitle = createAppTitle(APP_NAME);
+
 const canvas = createCanvas(256, 256, "canvas");
 const ctx = canvas.getContext("2d");
 
 interface Command {
   points: Array<{ x: number; y: number }>;
+  width: number;
   drag(point: { x: number; y: number }): void;
   display(ctx: CanvasRenderingContext2D): void;
 }
@@ -39,19 +40,20 @@ interface Command {
 function createCommand(): Command {
   return {
     points: [],
+    width: lineWidth,
 
     drag(point: { x: number; y: number }): void {
       this.points.push(point);
     },
 
     display(ctx: CanvasRenderingContext2D) {
+      if (this.points.length === 0) return;
+      ctx.lineWidth = this.width;
       ctx.beginPath();
       const { x, y } = this.points[0];
-      if (this.points.length > 0) {
-        ctx.moveTo(x, y);
-        for (const { x, y } of this.points) {
-          ctx.lineTo(x, y);
-        }
+      ctx.moveTo(x, y);
+      for (const { x, y } of this.points) {
+        ctx.lineTo(x, y);
       }
       ctx.stroke();
     },
@@ -62,19 +64,23 @@ const commands: Command[] = [];
 const redoCommands: Command[] = [];
 const bus = new EventTarget();
 
+let currentCommand: Command | null = null;
+
+let lineWidth = 1; //default thickness for strokes
+
+bus.addEventListener("drawing-changed", redraw);
+
 function eventTrigger(name: string) {
   bus.dispatchEvent(new Event(name));
 }
 
-bus.addEventListener("drawing-changed", () => {
+function redraw() {
   ctx?.clearRect(0, 0, canvas.width, canvas.height);
 
   for (const command of commands) {
     command.display(ctx!);
   }
-});
-
-let currentCommand: Command | null = null;
+}
 
 canvas.addEventListener("mousedown", (tmp) => {
   currentCommand = createCommand();
@@ -88,7 +94,6 @@ canvas.addEventListener("mousedown", (tmp) => {
 canvas.addEventListener("mousemove", (tmp) => {
   if (tmp.buttons === 1 && currentCommand) {
     currentCommand.drag({ x: tmp.offsetX, y: tmp.offsetY });
-
     eventTrigger("drawing-changed");
   }
 });
@@ -113,6 +118,16 @@ app.append(document.createElement("br"));
 const _clearButton = createButton("clear", clearHandler);
 const _undoButton = createButton("undo", undoHandler);
 const _redoButton = createButton("redo", redoHandler);
+const _thinBUtton = createButton("thin", thinHandler);
+const _thickButton = createButton("thick", thickHandler);
+
+function thinHandler() {
+  lineWidth = 1;
+}
+
+function thickHandler() {
+  lineWidth = 4;
+}
 
 function clearHandler() {
   ctx?.clearRect(0, 0, canvas.width, canvas.height);
