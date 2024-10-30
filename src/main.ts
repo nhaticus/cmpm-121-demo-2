@@ -28,6 +28,7 @@ document.title = APP_NAME;
 const _appTitle = createAppTitle(APP_NAME);
 
 const canvas = createCanvas(256, 256, "canvas");
+canvas.style.cursor = "none";
 const ctx = canvas.getContext("2d");
 
 interface Command {
@@ -60,15 +61,34 @@ function createCommand(): Command {
   };
 }
 
+interface CursorCommand {
+  x: number,
+  y: number,
+  draw(ctx: CanvasRenderingContext2D): void;
+}
+
+function createCursorcommand(x: number, y: number): CursorCommand {
+  return {
+    x,
+    y,
+    draw(ctx: CanvasRenderingContext2D) {
+      ctx.font = `${lineWidth * 8}px monospace`;
+      ctx.fillText(".", x - 2 * lineWidth, y + 0.5 * lineWidth);
+    },
+  };
+}
+
 const commands: Command[] = [];
 const redoCommands: Command[] = [];
 const bus = new EventTarget();
 
 let currentCommand: Command | null = null;
+let cursorCommand: CursorCommand | null = null;
 
 let lineWidth = 1; //default thickness for strokes
 
 bus.addEventListener("drawing-changed", redraw);
+bus.addEventListener("tool-moved", redraw);
 
 function eventTrigger(name: string) {
   bus.dispatchEvent(new Event(name));
@@ -80,7 +100,20 @@ function redraw() {
   for (const command of commands) {
     command.display(ctx!);
   }
+
+  if (cursorCommand) {
+    cursorCommand.draw(ctx!);
+  }
 }
+canvas.addEventListener("mouseout", (tmp) => {
+  cursorCommand = createCursorcommand(tmp.offsetX, tmp.offsetY);
+  eventTrigger("tool-moved");
+});
+
+canvas.addEventListener("mouseenter", (tmp) => {
+  cursorCommand = createCursorcommand(tmp.offsetX, tmp.offsetY);
+  eventTrigger("tool-moved");
+});
 
 canvas.addEventListener("mousedown", (tmp) => {
   currentCommand = createCommand();
@@ -92,6 +125,9 @@ canvas.addEventListener("mousedown", (tmp) => {
 });
 
 canvas.addEventListener("mousemove", (tmp) => {
+  cursorCommand = createCursorcommand(tmp.offsetX, tmp.offsetY);
+  eventTrigger("tool-moved");
+
   if (tmp.buttons === 1 && currentCommand) {
     currentCommand.drag({ x: tmp.offsetX, y: tmp.offsetY });
     eventTrigger("drawing-changed");
