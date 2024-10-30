@@ -33,49 +33,88 @@ const ctx = canvas.getContext("2d");
 
 interface Command {
   points: Array<{ x: number; y: number }>;
-  width: number;
+  width?: number;
+  emoji?: string;
   drag(point: { x: number; y: number }): void;
   display(ctx: CanvasRenderingContext2D): void;
 }
 
 function createCommand(): Command {
+  if (activeTool.type === "line") {
+    return {
+      points: [],
+      width: activeTool.width,
+
+      drag(point: { x: number; y: number }): void {
+        this.points.push(point);
+      },
+
+      display(ctx: CanvasRenderingContext2D) {
+        if (this.points.length === 0) return;
+        ctx.lineWidth = this.width!;
+        ctx.beginPath();
+        const { x, y } = this.points[0];
+        ctx.moveTo(x, y);
+        for (const { x, y } of this.points) {
+          ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      },
+    };
+  } else if (activeTool.type === "emoji") {
+    return {
+      points: [],
+      emoji: activeTool.emoji,
+
+      drag(point: { x: number; y: number }): void {
+        this.points.push(point);
+      },
+      display(ctx: CanvasRenderingContext2D) {
+        if (this.points.length === 0 || !this.emoji) return;
+        for (const { x, y } of this.points) {
+          ctx.font = "24px monospace";
+          ctx.fillText(this.emoji, x, y);
+        }
+      },
+    };
+  }
   return {
     points: [],
-    width: lineWidth,
-
-    drag(point: { x: number; y: number }): void {
-      this.points.push(point);
-    },
-
-    display(ctx: CanvasRenderingContext2D) {
-      if (this.points.length === 0) return;
-      ctx.lineWidth = this.width;
-      ctx.beginPath();
-      const { x, y } = this.points[0];
-      ctx.moveTo(x, y);
-      for (const { x, y } of this.points) {
-        ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-    },
+    drag: () => {},
+    display: () => {},
   };
 }
 
 interface CursorCommand {
   x: number;
   y: number;
+  width?: number;
+  emoji?: string;
   draw(ctx: CanvasRenderingContext2D): void;
 }
 
 function createCursorcommand(x: number, y: number): CursorCommand {
-  return {
-    x,
-    y,
-    draw(ctx: CanvasRenderingContext2D) {
-      ctx.font = `${lineWidth * 8}px monospace`;
-      ctx.fillText(".", x - 2 * lineWidth, y + 0.5 * lineWidth);
-    },
-  };
+  if (activeTool.type === "line") {
+    return {
+      x,
+      y,
+      width: activeTool.width,
+      draw(ctx: CanvasRenderingContext2D) {
+        ctx.font = `${this.width! * 8}px monospace`;
+        ctx.fillText(".", x - 2 * this.width!, y + 0.5 * this.width!);
+      },
+    };
+  } else if (activeTool.type === "emoji") {
+    return {
+      x,
+      y,
+      emoji: activeTool.emoji,
+      draw(ctx: CanvasRenderingContext2D) {
+        ctx.font = "24px monospace";
+        ctx.fillText(this.emoji!, x, y);
+      },
+    };
+  }
 }
 
 const commands: Command[] = [];
@@ -85,7 +124,9 @@ const bus = new EventTarget();
 let currentCommand: Command | null = null;
 let cursorCommand: CursorCommand | null = null;
 
-let lineWidth = 1; //default thickness for strokes
+let activeTool:
+  | { type: "line"; width: number }
+  | { type: "emoji"; emoji: string } = { type: "line", width: 1 };
 
 bus.addEventListener("drawing-changed", redraw);
 bus.addEventListener("tool-moved", redraw);
@@ -125,12 +166,12 @@ canvas.addEventListener("mousedown", (tmp) => {
 });
 
 canvas.addEventListener("mousemove", (tmp) => {
-  cursorCommand = createCursorcommand(tmp.offsetX, tmp.offsetY);
-  eventTrigger("tool-moved");
-
   if (tmp.buttons === 1 && currentCommand) {
     currentCommand.drag({ x: tmp.offsetX, y: tmp.offsetY });
     eventTrigger("drawing-changed");
+  } else {
+    cursorCommand = createCursorcommand(tmp.offsetX, tmp.offsetY);
+    eventTrigger("tool-moved");
   }
 });
 
@@ -149,11 +190,6 @@ function createButton(
   app.appendChild(tmpButton);
   return tmpButton;
 }
-
-app.append(document.createElement("br"));
-const _clearButton = createButton("clear", clearHandler);
-const _undoButton = createButton("undo", undoHandler);
-const _redoButton = createButton("redo", redoHandler);
 
 function clearHandler() {
   ctx?.clearRect(0, 0, canvas.width, canvas.height);
@@ -179,15 +215,32 @@ function redoHandler() {
 }
 
 app.append(document.createElement("br"));
-const _thinBUtton = createButton("thin", thinToolHandler);
-const _thickButton = createButton("thick", thickToolHandler);
+const _clearButton = createButton("clear", clearHandler);
+const _undoButton = createButton("undo", undoHandler);
+const _redoButton = createButton("redo", redoHandler);
 
 function thinToolHandler() {
-  lineWidth = 1;
+  activeTool = { type: "line", width: 1 };
   eventTrigger("tool-moved");
 }
 
 function thickToolHandler() {
-  lineWidth = 4;
+  activeTool = { type: "line", width: 4 };
   eventTrigger("tool-moved");
 }
+
+app.append(document.createElement("br"));
+const _thinButton = createButton("thin", thinToolHandler);
+const _thickButton = createButton("thick", thickToolHandler);
+
+function createEmojiButton(emoji: string) {
+  return createButton(emoji, () => {
+    activeTool = { type: "emoji", emoji: emoji };
+    eventTrigger("tool-moved");
+  });
+}
+
+app.append(document.createElement("br"));
+const _coolEmojiButton = createEmojiButton("😎");
+const _heartEmojiButton = createEmojiButton("❤️");
+const _waterEmojiButton = createEmojiButton("💦");
