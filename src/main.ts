@@ -62,8 +62,8 @@ function createCommand(): Command {
 }
 
 interface CursorCommand {
-  x: number,
-  y: number,
+  x: number;
+  y: number;
   draw(ctx: CanvasRenderingContext2D): void;
 }
 
@@ -154,16 +154,6 @@ app.append(document.createElement("br"));
 const _clearButton = createButton("clear", clearHandler);
 const _undoButton = createButton("undo", undoHandler);
 const _redoButton = createButton("redo", redoHandler);
-const _thinBUtton = createButton("thin", thinHandler);
-const _thickButton = createButton("thick", thickHandler);
-
-function thinHandler() {
-  lineWidth = 1;
-}
-
-function thickHandler() {
-  lineWidth = 4;
-}
 
 function clearHandler() {
   ctx?.clearRect(0, 0, canvas.width, canvas.height);
@@ -186,4 +176,18 @@ function redoHandler() {
     }
     eventTrigger("drawing-changed");
   }
+}
+
+app.append(document.createElement("br"));
+const _thinBUtton = createButton("thin", thinToolHandler);
+const _thickButton = createButton("thick", thickToolHandler);
+
+function thinToolHandler() {
+  lineWidth = 1;
+  eventTrigger("tool-moved");
+}
+
+function thickToolHandler() {
+  lineWidth = 4;
+  eventTrigger("tool-moved");
 }
