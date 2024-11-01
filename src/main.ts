@@ -73,7 +73,7 @@ function createCommand(): Command {
       display(ctx: CanvasRenderingContext2D) {
         if (this.points.length === 0 || !this.emoji) return;
         for (const { x, y } of this.points) {
-          ctx.font = "24px monospace";
+          ctx.font = "36px monospace";
           ctx.fillText(this.emoji, x, y);
         }
       },
@@ -111,7 +111,7 @@ function createCursorcommand(x: number, y: number): CursorCommand {
       y,
       emoji: activeTool.emoji,
       draw(ctx: CanvasRenderingContext2D) {
-        ctx.font = "24px monospace";
+        ctx.font = "36px monospace";
         ctx.fillText(this.emoji!, x, y);
       },
     };
