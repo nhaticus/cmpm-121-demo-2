@@ -30,6 +30,7 @@ createAppTitle(APP_NAME);
 const canvas = createCanvas(256, 256, "canvas");
 canvas.style.cursor = "none";
 const ctx = canvas.getContext("2d");
+createButton("export", scaledCanvasExport);
 
 interface Command {
   points: Array<{ x: number; y: number }>;
@@ -271,3 +272,25 @@ function customStickerHandler() {
     alert("Error: empty string.");
   }
 }
+
+function scaledCanvasExport() {
+  const scaledCanvas = document.createElement("canvas");
+  scaledCanvas.width = canvas.width * 4;
+  scaledCanvas.height = canvas.height * 4;
+  const scaledCtx = scaledCanvas.getContext("2d");
+
+  if (scaledCtx) {
+    scaledCtx.scale(4, 4);
+
+    for (const command of commands) {
+      command.display(scaledCtx);
+    }
+
+    const anchor = document.createElement("a");
+    anchor.href = scaledCanvas.toDataURL("image/png");
+    anchor.download = "sketchpad.png";
+    anchor.click();
+
+  }
+}
+
