@@ -135,7 +135,7 @@ let activeTool:
   | { name: string; type: "emoji"; emoji: string } = {
   name: "thin",
   type: "line",
-  width: 1,
+  width: 4,
 };
 
 const currentTool = document.createElement("div");
@@ -236,12 +236,12 @@ createButton("undo", undoHandler);
 createButton("redo", redoHandler);
 
 function thinToolHandler() {
-  activeTool = { name: "thin", type: "line", width: 1 };
+  activeTool = { name: "thin", type: "line", width: 4 };
   eventTrigger("tool-moved");
 }
 
 function thickToolHandler() {
-  activeTool = { name: "thick", type: "line", width: 4 };
+  activeTool = { name: "thick", type: "line", width: 10 };
   eventTrigger("tool-moved");
 }
 
