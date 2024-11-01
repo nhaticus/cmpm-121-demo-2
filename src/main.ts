@@ -25,7 +25,7 @@ const app = document.querySelector<HTMLDivElement>("#app")!;
 const APP_NAME = "The Drawing Board";
 document.title = APP_NAME;
 
-const _appTitle = createAppTitle(APP_NAME);
+createAppTitle(APP_NAME);
 
 const canvas = createCanvas(256, 256, "canvas");
 canvas.style.cursor = "none";
@@ -220,9 +220,9 @@ function redoHandler() {
 }
 
 app.append(document.createElement("br"));
-const _clearButton = createButton("clear", clearHandler);
-const _undoButton = createButton("undo", undoHandler);
-const _redoButton = createButton("redo", redoHandler);
+createButton("clear", clearHandler);
+createButton("undo", undoHandler);
+createButton("redo", redoHandler);
 
 function thinToolHandler() {
   activeTool = { type: "line", width: 1 };
@@ -235,8 +235,8 @@ function thickToolHandler() {
 }
 
 app.append(document.createElement("br"));
-const _thinButton = createButton("thin", thinToolHandler);
-const _thickButton = createButton("thick", thickToolHandler);
+createButton("thin", thinToolHandler);
+createButton("thick", thickToolHandler);
 
 function createEmojiButton(emoji: string) {
   return createButton(emoji, () => {
@@ -246,6 +246,6 @@ function createEmojiButton(emoji: string) {
 }
 
 app.append(document.createElement("br"));
-const _coolEmojiButton = createEmojiButton("😎");
-const _heartEmojiButton = createEmojiButton("❤️");
-const _waterEmojiButton = createEmojiButton("💦");
+createEmojiButton("😎");
+createEmojiButton("❤️");
+createEmojiButton("💦");
