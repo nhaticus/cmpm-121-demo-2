@@ -264,7 +264,7 @@ app.append(document.createElement("br"));
 createButton("Custom Stickers", customStickerHandler);
 
 function customStickerHandler() {
-  const text = prompt("Custom sticker text", "🧽");
+  const text = prompt("Input a custom emoji below", "");
   if (text && text.trim() !== "") {
     createEmojiButton(text);
   } else {

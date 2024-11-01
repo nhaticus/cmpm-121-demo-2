@@ -45,7 +45,7 @@ h1 {
 .canvas {
   border: 1px solid black;
   border-radius: 30px;
-  filter: drop-shadow(0 0 0.5em red);
+  filter: drop-shadow(0 0 0.5em rgb(255, 255, 255));
 }
 
 .logo {
