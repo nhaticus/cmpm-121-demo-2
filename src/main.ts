@@ -130,8 +130,16 @@ let currentCommand: Command | null = null;
 let cursorCommand: CursorCommand | null = null;
 
 let activeTool:
-  | { type: "line"; width: number }
-  | { type: "emoji"; emoji: string } = { type: "line", width: 1 };
+  | { name: string; type: "line"; width: number }
+  | { name: string; type: "emoji"; emoji: string } = {
+  name: "thin",
+  type: "line",
+  width: 1,
+};
+
+const currentTool = document.createElement("div");
+currentTool.innerHTML = "Active Tool: " + activeTool.name;
+app.appendChild(currentTool);
 
 bus.addEventListener("drawing-changed", redraw);
 bus.addEventListener("tool-moved", redraw);
@@ -142,6 +150,7 @@ function eventTrigger(name: string) {
 
 function redraw() {
   ctx?.clearRect(0, 0, canvas.width, canvas.height);
+  currentTool.innerHTML = "Active Tool: " + activeTool.name;
 
   for (const command of commands) {
     command.display(ctx!);
@@ -151,6 +160,7 @@ function redraw() {
     cursorCommand.draw(ctx!);
   }
 }
+
 canvas.addEventListener("mouseout", (tmp) => {
   cursorCommand = createCursorcommand(tmp.offsetX, tmp.offsetY);
   eventTrigger("tool-moved");
@@ -225,12 +235,12 @@ createButton("undo", undoHandler);
 createButton("redo", redoHandler);
 
 function thinToolHandler() {
-  activeTool = { type: "line", width: 1 };
+  activeTool = { name: "thin", type: "line", width: 1 };
   eventTrigger("tool-moved");
 }
 
 function thickToolHandler() {
-  activeTool = { type: "line", width: 4 };
+  activeTool = { name: "thick", type: "line", width: 4 };
   eventTrigger("tool-moved");
 }
 
@@ -240,7 +250,7 @@ createButton("thick", thickToolHandler);
 
 function createEmojiButton(emoji: string) {
   return createButton(emoji, () => {
-    activeTool = { type: "emoji", emoji: emoji };
+    activeTool = { name: emoji, type: "emoji", emoji: emoji };
     eventTrigger("tool-moved");
   });
 }
@@ -249,3 +259,15 @@ app.append(document.createElement("br"));
 createEmojiButton("😎");
 createEmojiButton("❤️");
 createEmojiButton("💦");
+
+app.append(document.createElement("br"));
+createButton("Custom Stickers", customStickerHandler);
+
+function customStickerHandler() {
+  const text = prompt("Custom sticker text", "🧽");
+  if (text && text.trim() !== "") {
+    createEmojiButton(text);
+  } else {
+    alert("Error: empty string.");
+  }
+}
