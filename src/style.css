@@ -87,6 +87,20 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+input[type="range"] {
+  display: flex;
+  place-items: center;
+  font-family: inherit;
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 10px;
+  width: 200px;
+  height: 15px;
+  border-radius: 5px;
+}
+
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

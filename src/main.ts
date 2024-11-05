@@ -17,6 +17,7 @@ function createCanvas(
   tmpCanvas.height = height;
   tmpCanvas.classList.add(className);
   app.appendChild(tmpCanvas);
+  tmpCanvas.style.cursor = "none";
   return tmpCanvas;
 }
 
@@ -28,14 +29,15 @@ document.title = APP_NAME;
 createAppTitle(APP_NAME);
 
 const canvas = createCanvas(256, 256, "canvas");
-canvas.style.cursor = "none";
 const ctx = canvas.getContext("2d");
+
 createButton("export", scaledCanvasExport);
 
 interface Command {
   points: Array<{ x: number; y: number }>;
   width?: number;
   emoji?: string;
+  color?: string;
   drag(point: { x: number; y: number }): void;
   display(ctx: CanvasRenderingContext2D): void;
 }
@@ -45,6 +47,7 @@ function createCommand(): Command {
     return {
       points: [],
       width: activeTool.width,
+      color: activeTool.color,
 
       drag(point: { x: number; y: number }): void {
         this.points.push(point);
@@ -53,6 +56,7 @@ function createCommand(): Command {
       display(ctx: CanvasRenderingContext2D) {
         if (this.points.length === 0) return;
         ctx.lineWidth = this.width!;
+        ctx.strokeStyle = this.color!;
         ctx.beginPath();
         const { x, y } = this.points[0];
         ctx.moveTo(x, y);
@@ -91,6 +95,7 @@ interface CursorCommand {
   y: number;
   width?: number;
   emoji?: string;
+  color?: string;
   draw(ctx: CanvasRenderingContext2D): void;
 }
 
@@ -100,8 +105,10 @@ function createCursorcommand(x: number, y: number): CursorCommand {
       x,
       y,
       width: activeTool.width,
+      color: activeTool.color,
       draw(ctx: CanvasRenderingContext2D) {
         ctx.font = `${this.width! * 8}px monospace`;
+        ctx.strokeStyle = this.color!;
         ctx.fillText(".", x - 2 * this.width!, y + 0.5 * this.width!);
       },
     };
@@ -131,11 +138,12 @@ let currentCommand: Command | null = null;
 let cursorCommand: CursorCommand | null = null;
 
 let activeTool:
-  | { name: string; type: "line"; width: number }
+  | { name: string; type: "line"; width: number; color: string }
   | { name: string; type: "emoji"; emoji: string } = {
   name: "thin",
   type: "line",
   width: 4,
+  color: "red",
 };
 
 const currentTool = document.createElement("div");
@@ -177,6 +185,8 @@ canvas.addEventListener("mousedown", (tmp) => {
   currentCommand.drag({ x: tmp.offsetX, y: tmp.offsetY });
   commands.push(currentCommand);
   redoCommands.length = 0;
+
+  cursorCommand = null;
 
   eventTrigger("drawing-changed");
 });
@@ -236,12 +246,12 @@ createButton("undo", undoHandler);
 createButton("redo", redoHandler);
 
 function thinToolHandler() {
-  activeTool = { name: "thin", type: "line", width: 4 };
+  activeTool = { name: "thin", type: "line", width: 4, color: currentColor };
   eventTrigger("tool-moved");
 }
 
 function thickToolHandler() {
-  activeTool = { name: "thick", type: "line", width: 10 };
+  activeTool = { name: "thick", type: "line", width: 10, color: currentColor };
   eventTrigger("tool-moved");
 }
 
@@ -290,7 +300,31 @@ function scaledCanvasExport() {
     anchor.href = scaledCanvas.toDataURL("image/png");
     anchor.download = "sketchpad.png";
     anchor.click();
-
   }
 }
 
+const colorSlider = document.createElement("input");
+colorSlider.type = "range";
+colorSlider.min = "0";
+colorSlider.max = "360";
+colorSlider.value = "0";
+app.appendChild(colorSlider);
+
+const colorDisplay = document.createElement("div");
+colorDisplay.innerHTML = "Use slider to change tool color";
+colorDisplay.style.color = `hsl(0, 100%, 50%)`;
+colorDisplay.style.position = "absolute";
+colorDisplay.style.top = "20px";
+colorDisplay.style.right = "10px";
+app.appendChild(colorDisplay);
+
+colorSlider.addEventListener("input", () => {
+  currentColor = `hsl(${colorSlider.value}, 100%, 50%)`;
+  colorDisplay.style.color = currentColor;
+
+  if (activeTool.type === "line") {
+    activeTool.color = currentColor;
+  }
+});
+
+let currentColor: string;
