@@ -18,7 +18,6 @@ colorSlider.type = "range";
 colorSlider.min = "0";
 colorSlider.max = "360";
 colorSlider.value = "0";
-app.appendChild(colorSlider);
 
 function createCanvas(
   width: number,
@@ -34,16 +33,12 @@ function createCanvas(
   return tmpCanvas;
 }
 
-
-
 function createButtonGroup(buttons: HTMLElement[]): HTMLElement {
-  const group = document.createElement('div');
-  group.classList.add('button-group');
-  buttons.forEach(button => group.appendChild(button));
+  const group = document.createElement("div");
+  group.classList.add("button-group");
+  buttons.forEach((button) => group.appendChild(button));
   return group;
 }
-
-
 
 let activeTool:
   | { name: string; type: "line"; width: number; color: string }
@@ -58,8 +53,6 @@ const currentTool = document.createElement("div");
 currentTool.innerHTML = "Active Tool: " + activeTool.name;
 app.appendChild(currentTool);
 
-
-
 function thinToolHandler() {
   activeTool = { name: "thin", type: "line", width: 4, color: currentColor };
   eventTrigger("tool-moved");
@@ -69,8 +62,6 @@ function thickToolHandler() {
   activeTool = { name: "thick", type: "line", width: 10, color: currentColor };
   eventTrigger("tool-moved");
 }
-
-
 
 const toolButtons = createButtonGroup([
   createButton("thin", thinToolHandler),
@@ -87,6 +78,10 @@ function createEmojiButton(emoji: string): HTMLButtonElement {
 
 const canvas = createCanvas(256, 256, "canvas");
 const ctx = canvas.getContext("2d");
+
+// Move slider below the canvas
+app.appendChild(canvas);
+app.appendChild(colorSlider); // Slider now added after the canvas
 
 const colorDisplay = document.createElement("div");
 colorDisplay.style.color = `hsl(0, 100%, 50%)`;
@@ -106,7 +101,16 @@ colorDisplay.innerHTML = "Use slider to change tool color";
 
 let currentColor: string;
 
-createButton("export", scaledCanvasExport);
+function customStickerHandler() {
+  const text = prompt("Input a custom emoji below", "");
+  if (text && text.trim() !== "") {
+    createEmojiButton(text);
+  } else {
+    alert("Error: empty string.");
+  }
+}
+
+
 
 interface Command {
   points: Array<{ x: number; y: number }>;
@@ -306,22 +310,15 @@ const emojiButtons = createButtonGroup([
   createEmojiButton("❤️"),
   createEmojiButton("💦"),
 ]);
-
 app.appendChild(emojiButtons);
 
-// Custom sticker button
+// Group Custom Stickers and Export buttons
 const customStickerButton = createButton("Custom Stickers", customStickerHandler);
-app.appendChild(customStickerButton);
-createButton("Custom Stickers", customStickerHandler);
-
-function customStickerHandler() {
-  const text = prompt("Input a custom emoji below", "");
-  if (text && text.trim() !== "") {
-    createEmojiButton(text);
-  } else {
-    alert("Error: empty string.");
-  }
-}
+const customStickerExportGroup = createButtonGroup([
+  customStickerButton,
+  createButton("Export", scaledCanvasExport),
+]);
+app.appendChild(customStickerExportGroup);
 
 function scaledCanvasExport() {
   const scaledCanvas = document.createElement("canvas");

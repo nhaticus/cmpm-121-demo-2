@@ -51,7 +51,7 @@ h1 {
   display: flex;
   justify-content: center;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-top: 20px; /* Adds spacing above the button group */
 }
 
 button {
@@ -77,13 +77,8 @@ button:focus-visible {
 }
 
 input[type="range"] {
-  display: flex;
-  place-items: center;
-  font-family: inherit;
-  position: absolute;
-  top: 0;
-  right: 0;
-  margin: 10px;
+  display: block;
+  margin: 20px auto; /* Centers the slider below the canvas and adds spacing */
   width: 200px;
   height: 15px;
   border-radius: 5px;
