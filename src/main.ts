@@ -37,6 +37,7 @@ function createButtonGroup(buttons: HTMLElement[]): HTMLElement {
   const group = document.createElement("div");
   group.classList.add("button-group");
   buttons.forEach((button) => group.appendChild(button));
+  app.appendChild(group);
   return group;
 }
 
@@ -69,13 +70,6 @@ const toolButtons = createButtonGroup([
 ]);
 app.appendChild(toolButtons);
 
-function createEmojiButton(emoji: string): HTMLButtonElement {
-  return createButton(emoji, () => {
-    activeTool = { name: emoji, type: "emoji", emoji };
-    eventTrigger("tool-moved");
-  });
-}
-
 const canvas = createCanvas(256, 256, "canvas");
 const ctx = canvas.getContext("2d");
 
@@ -100,17 +94,6 @@ colorSlider.addEventListener("input", () => {
 colorDisplay.innerHTML = "Use slider to change tool color";
 
 let currentColor: string;
-
-function customStickerHandler() {
-  const text = prompt("Input a custom emoji below", "");
-  if (text && text.trim() !== "") {
-    createEmojiButton(text);
-  } else {
-    alert("Error: empty string.");
-  }
-}
-
-
 
 interface Command {
   points: Array<{ x: number; y: number }>;
@@ -305,6 +288,14 @@ const actionButtons = createButtonGroup([
 app.appendChild(actionButtons);
 
 // Create and append emoji buttons
+
+function createEmojiButton(emoji: string): HTMLButtonElement {
+  return createButton(emoji, () => {
+    activeTool = { name: emoji, type: "emoji", emoji };
+    eventTrigger("tool-moved");
+  });
+}
+
 const emojiButtons = createButtonGroup([
   createEmojiButton("😎"),
   createEmojiButton("❤️"),
@@ -313,7 +304,10 @@ const emojiButtons = createButtonGroup([
 app.appendChild(emojiButtons);
 
 // Group Custom Stickers and Export buttons
-const customStickerButton = createButton("Custom Stickers", customStickerHandler);
+const customStickerButton = createButton(
+  "Custom Stickers",
+  customStickerHandler
+);
 const customStickerExportGroup = createButtonGroup([
   customStickerButton,
   createButton("Export", scaledCanvasExport),
@@ -334,5 +328,15 @@ function scaledCanvasExport() {
     anchor.href = scaledCanvas.toDataURL("image/png");
     anchor.download = "sketchpad.png";
     anchor.click();
+  }
+}
+
+const customStickerGroup = createButtonGroup([]);
+function customStickerHandler() {
+  const text = prompt("Input a custom emoji below", "");
+  if (text && text.trim() !== "") {
+    customStickerGroup.appendChild(createEmojiButton(text));
+  } else {
+    alert("Error: empty string.");
   }
 }
