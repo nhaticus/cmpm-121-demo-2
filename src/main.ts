@@ -213,26 +213,36 @@ function redraw() {
   }
 }
 
-canvas.addEventListener("mouseout", (tmp) => {
+//Changed all mouse handlers to call a function rather than have it the event listener itself
+canvas.addEventListener("mouseout", mouseOutHandler);
+
+canvas.addEventListener("mouseenter", mouseEnterHandler);
+
+canvas.addEventListener("mousedown", mouseDownHandler);
+
+canvas.addEventListener("mousemove", mouseMoveHandler);
+
+canvas.addEventListener("mouseup", mouseUpHandler);
+
+
+//Listener functions
+function mouseOutHandler(tmp: MouseEvent){
   cursorCommand = createCursorcommand(tmp.offsetX, tmp.offsetY);
   eventTrigger("tool-moved");
-});
-
-canvas.addEventListener("mouseenter", (tmp) => {
+}
+function mouseEnterHandler(tmp: MouseEvent){
   cursorCommand = createCursorcommand(tmp.offsetX, tmp.offsetY);
   eventTrigger("tool-moved");
-});
-
-canvas.addEventListener("mousedown", (tmp) => {
+}
+function mouseDownHandler(tmp: MouseEvent){
   currentCommand = createCommand();
   currentCommand.drag({ x: tmp.offsetX, y: tmp.offsetY });
   commands.push(currentCommand);
   redoCommands.length = 0;
   cursorCommand = null;
   eventTrigger("drawing-changed");
-});
-
-canvas.addEventListener("mousemove", (tmp) => {
+}
+function mouseMoveHandler(tmp: MouseEvent){
   if (tmp.buttons === 1 && currentCommand) {
     currentCommand.drag({ x: tmp.offsetX, y: tmp.offsetY });
     eventTrigger("drawing-changed");
@@ -240,12 +250,11 @@ canvas.addEventListener("mousemove", (tmp) => {
     cursorCommand = createCursorcommand(tmp.offsetX, tmp.offsetY);
     eventTrigger("tool-moved");
   }
-});
-
-canvas.addEventListener("mouseup", () => {
+}
+function mouseUpHandler(){
   currentCommand = null;
   eventTrigger("drawing-changed");
-});
+}
 
 function createButton(
   buttonText: string,
